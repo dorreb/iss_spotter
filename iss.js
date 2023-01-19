@@ -10,28 +10,50 @@ const request = require('request');
  *   - The IP address as a string (null if error). Example: "162.245.144.188"
  */
 
+// const fetchMyIp = function(callback) {
+//   request(`https://api.ipify.org?format=json`, (error, response, body) => {
+//     if (error) return callback(error, null);
 
-const fetchMyIp = function(callback) {
-  const apiUrl = `https://api.ipify.org?format=json`;
-  request(apiUrl, (error, response, body) => {
+//     if (response.statusCode !== 200) {
+//       callback(Error(`Status Code ${response.statusCode} when fetching IP. Response: ${body}`), null);
+//       return;
+//     }
+
+//     const ip = JSON.parse(body);
+
+//     if (ip.length === 0) {
+//       callback(`No ip found!`, null);
+//       return;
+//     }
+
+//     callback(null, ip);
+
+//   });
+// };
+
+const fetchCoordsByIP = function(ip, callback) {
+  request(`http://ipwho.is/${ip}`, (error, response, body) => {
+
     if (error) return callback(error, null);
 
-    if (response.statusCode !== 200) {
-      callback(Error(`Status Code ${response.statusCode} when fetching IP. Response: ${body}`), null);
+    const parsedBody = JSON.parse(body);
+
+    if (!parsedBody.success) {
+      const message = `Success status was ${parsedBody.success}. Server message says: ${parsedBody.message} when fetching for IP ${parsedBody.ip}`;
+      callback(Error(message), null);
       return;
     }
 
-    const ip = JSON.parse(body);
 
-    if (ip.length === 0) {
-      callback(`No ip found!`, null);
-      return;
-    }
+    const { latitude, longitude } = parsedBody;
 
-    callback(null, ip);
+
+    callback(null, { latitude, longitude });
 
   });
 
 };
 
-module.exports = { fetchMyIp };
+module.exports = { fetchCoordsByIP };
+
+// module.exports = { fetchMyIp, fetchCoordsByIP };
